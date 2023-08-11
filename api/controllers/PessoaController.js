@@ -1,10 +1,13 @@
 const database = require('../models')
 const Sequelize = require('sequelize')
 
+const Services = require('../services.js')
+const pessoasServices = new Services('Pessoas')
+
 class PessoaController {
   static async pegaTodasAsPessoasAtivas(req, res){
     try {
-      const todasAsPessoasAtivas = await database.Pessoas.findAll()
+      const todasAsPessoasAtivas = await pessoasServices.pegatodosRegistros()
       return res.status(200).json(todasAsPessoasAtivas)
     } catch (error) {
       return res.status(500).json(error.message)
@@ -206,8 +209,8 @@ class PessoaController {
 
         await database.Matriculas
           .update({status:'cancelado'},
-           {where: {esyudante_id: Number(estudanteId)}},
-           {transaction:transaction}
+            {where: {esyudante_id: Number(estudanteId)}},
+            {transaction:transaction}
           )
         return res.status(200).json({message:`Matriculas ref.${estudanteId} canceladas`})
       })
@@ -218,19 +221,19 @@ class PessoaController {
 
 
   static async exemple(req, res, next) {
-    const transacao = await sequelize.transaction();
+    const transacao = await sequelize.transaction()
     try {
       const personagem = await Personagem.create({
         nome: 'Bart',
         sobrenome: 'Simpson'
-      }, { transaction: transacao });
+      }, { transaction: transacao })
       await personagem.addParente({
         nome: 'Lisa',
         sobrenome: 'Simpson'
-      }, { transaction: transacao });
-      await transacao.commit();
+      }, { transaction: transacao })
+      await transacao.commit()
     } catch (error) {
-      await transacao.rollback();
+      await transacao.rollback()
     }
   }
 
