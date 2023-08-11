@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       valifate: {
         functionValidateName: function(name){
           if (name.length < 3 ){
-            throw new Error("O campo deve possuir 3 ou mais letras")
+            throw new Error('O campo deve possuir 3 ou mais letras')
           }
         }
       }
@@ -26,9 +26,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     role: DataTypes.STRING
   }, { paranoid: true,
-       defaultScope: {where:{ativo:true}},
-       scopes:{ todos: {where:{}} }
-     }
+    defaultScope: {where:{ativo:true}},
+    scopes:{ todos: {where:{}} }
+  }
   )
   Pessoas.associate = function(models) {
     Pessoas.hasMany(models.Turmas, {

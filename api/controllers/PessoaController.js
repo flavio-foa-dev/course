@@ -1,4 +1,5 @@
 const database = require('../models')
+const Sequelize = require('sequelize')
 
 class PessoaController {
   static async pegaTodasAsPessoasAtivas(req, res){
@@ -157,6 +158,81 @@ class PessoaController {
     }
   }
 
+  static async pegaMatriculasPorTurma(req, res) {
+    const { turmaId } = req.params
+    try {
+      const todasAsMatriculasPorTurma = await database.Matriculas.findAndCountAll({
+        where:{turma_id: Number(turmaId),
+          status: 'confirmado'
+        },
+        limit: 10,
+        order:[['estudante_id', 'desc']]
+      })
+      return res.status(200).json(todasAsMatriculasPorTurma)
+
+    } catch (error) {
+      return res.status(500).json(error.message)
+    }
+  }
+
+  static async pegaPorTurmaLotadas(req, res) {
+    const { turmaId } = req.params
+    try {
+      const turmaLotadas = 5
+      const todasAsMatriculasPorTurma = await database.Matriculas
+        .findAndCountAll({
+          where: {status: 'confirmado'},
+          attributes : ['turma_id'],
+          group: ['turma_id'],
+          having: Sequelize.literal(`count(turma_id) >= ${turmaLotadas}`)
+        })
+
+      return res.status(200).json(todasAsMatriculasPorTurma)
+
+    } catch (error) {
+      return res.status(500).json(error.message)
+    }
+  }
+
+  static async cancelaPessoa(req, res) {
+    const { estudanteId } = req.params
+    try {
+      database.Sequelize.Transaction(async(transaction)=>{
+        await database.Pessoas
+          .update({ativo:false},
+            {where: {id: Number(estudanteId)}},
+            {transaction:transaction}
+          )
+
+        await database.Matriculas
+          .update({status:'cancelado'},
+           {where: {esyudante_id: Number(estudanteId)}},
+           {transaction:transaction}
+          )
+        return res.status(200).json({message:`Matriculas ref.${estudanteId} canceladas`})
+      })
+    } catch (error) {
+      return res.status(500).json(error.message)
+    }
+  }
+
+
+  static async exemple(req, res, next) {
+    const transacao = await sequelize.transaction();
+    try {
+      const personagem = await Personagem.create({
+        nome: 'Bart',
+        sobrenome: 'Simpson'
+      }, { transaction: transacao });
+      await personagem.addParente({
+        nome: 'Lisa',
+        sobrenome: 'Simpson'
+      }, { transaction: transacao });
+      await transacao.commit();
+    } catch (error) {
+      await transacao.rollback();
+    }
+  }
 
 }
 
